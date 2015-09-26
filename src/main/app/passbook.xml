@@ -1,0 +1,39 @@
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:spring="http://www.springframework.org/schema/beans" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+     
+    <flow name="FormFlow">
+        <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" path="passhtml" doc:name="HTTP"/>
+        <http:static-resource-handler resourceBase="src/main/resources/web" defaultFile="PassSlotTest.html" doc:name="HTTP Static Resource Handler"/>
+    </flow>
+    <flow name="ServiceFlow">
+<http:inbound-endpoint doc:name="HTTP" exchange-pattern="request-response" host="localhost" path="passslot/pass/create" port="8081"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
+        <set-variable variableName="toMail" value="#[payload.email]" doc:name="Variable"/>
+        <set-payload value="#['{ &quot;lastname&quot;: &quot;'+payload.lastname +'&quot;, &quot;firstname&quot;: &quot;'+ payload.firstname +'&quot;, &quot;date&quot;: &quot;'+payload.date +'&quot; }' ]" doc:name="GetPass Payload"/>
+        <message-properties-transformer doc:name="Authorization and Content">
+            <add-message-property key="Authorization" value="kcBhararTOMywFcLkTfEStxTaGtgwqRjBcYrBYHKgtolQkJOKzdXlNpoMgBThtOH"/>
+            <add-message-property key="Content-type" value="application/json"/>
+        </message-properties-transformer>
+        <http:outbound-endpoint exchange-pattern="request-response" host="api.passslot.com" port="80" path="v1/templates/5709564819275776/pass" method="POST" doc:name="GetPass"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
+        <set-variable variableName="dynPath" value="#[&quot;v1/passes/pass.slot.developer1/&quot; + payload.serialNumber + &quot;/email&quot;]" doc:name="setPath"/>
+        <set-payload value="#['{ &quot;email&quot;: &quot;'+ toMail +'&quot; }' ]" doc:name="SendMail Payload"/>
+        <message-properties-transformer doc:name="Authorization and Content">
+            <add-message-property key="Authorization" value="kcBhararTOMywFcLkTfEStxTaGtgwqRjBcYrBYHKgtolQkJOKzdXlNpoMgBThtOH"/>
+            <add-message-property key="Content-type" value="application/json"/>
+        </message-properties-transformer>
+
+        <http:outbound-endpoint doc:name="sendMail" exchange-pattern="request-response" host="api.passslot.com" method="POST" path="#[dynPath]" port="80"/>
+        <set-payload value="#[message.inboundProperties['http.status'] + &quot; &quot; + message.inboundProperties['http.reason']]" doc:name="Set Payload"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="#[message.inboundProperties['http.status'] + &quot; &quot; + message.inboundProperties['http.reason']]" doc:name="Set Payload"/>
+        </catch-exception-strategy>
+  </flow>
+</mule>
