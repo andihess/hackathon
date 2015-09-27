@@ -24,11 +24,11 @@
 		-->		
 		<project.build.directory>/target</project.build.directory>
 		
-		<deployment.artifactId>passSlot-1.0.0-SNAPSHOT</deployment.artifactId>		
-		<deployment.server>10.0.10.30</deployment.server>
+		<deployment.artifactId>passbookHack-1.0.0-SNAPSHOT</deployment.artifactId>		
+		<deployment.server>52.18.25.55</deployment.server>
 		<deployment.server.path>/opt/mule/apps/</deployment.server.path>
-		<deployment.userName>ubuntu</deployment.userName>
-		<deployment.keyfile>/home/charu/immediate-devon.pem</deployment.keyfile>
+		<deployment.userName>vagrant</deployment.userName>
+		<deployment.keyfile>/home/immediate1/idf-aws/accelerators/automated-provisioning/puppet/vagrant_key</deployment.keyfile>
 		
 		
 		

@@ -9,21 +9,17 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
      
     <flow name="FormFlow">
-        <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" path="passhtml" doc:name="HTTP"/>
+        <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8080" path="passhtml" doc:name="HTTP"/>
         <http:static-resource-handler resourceBase="src/main/resources/web" defaultFile="PassSlotTest.html" doc:name="HTTP Static Resource Handler"/>
     </flow>
     <flow name="ServiceFlow">
-<http:inbound-endpoint doc:name="HTTP" exchange-pattern="request-response" host="localhost" path="passslot/pass/create" port="8081"/>
-        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
-        <set-variable variableName="toMail" value="#[payload.email]" doc:name="Variable"/>
+<http:inbound-endpoint doc:name="HTTP" exchange-pattern="request-response" host="localhost" path="passslot/pass/create" port="8080"/>
         <set-payload value="#['{ &quot;lastname&quot;: &quot;'+payload.lastname +'&quot;, &quot;firstname&quot;: &quot;'+ payload.firstname +'&quot;, &quot;date&quot;: &quot;'+payload.date +'&quot; }' ]" doc:name="GetPass Payload"/>
         <message-properties-transformer doc:name="Authorization and Content">
             <add-message-property key="Authorization" value="kcBhararTOMywFcLkTfEStxTaGtgwqRjBcYrBYHKgtolQkJOKzdXlNpoMgBThtOH"/>
             <add-message-property key="Content-type" value="application/json"/>
         </message-properties-transformer>
         <http:outbound-endpoint exchange-pattern="request-response" host="api.passslot.com" port="80" path="v1/templates/5709564819275776/pass" method="POST" doc:name="GetPass"/>
-        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
-        <set-variable variableName="dynPath" value="#[&quot;v1/passes/pass.slot.developer1/&quot; + payload.serialNumber + &quot;/email&quot;]" doc:name="setPath"/>
         <set-payload value="#['{ &quot;email&quot;: &quot;'+ toMail +'&quot; }' ]" doc:name="SendMail Payload"/>
         <message-properties-transformer doc:name="Authorization and Content">
             <add-message-property key="Authorization" value="kcBhararTOMywFcLkTfEStxTaGtgwqRjBcYrBYHKgtolQkJOKzdXlNpoMgBThtOH"/>
